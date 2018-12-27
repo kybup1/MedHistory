@@ -1,8 +1,21 @@
 <template>
   <div class="home">
-    <h1>logged in as</h1>
-    <button v-on:click=getPract>load Practitioner</button>
+    <div class="header">
+      <h1>logged in as</h1>
+      <h2 v-if="practLoaded">{{pract.name[0].given[0] + " " + pract.name[0].family}}</h2>
+      <h2 v-else>Laden...</h2>
+    </div>
+    <div class="patList">
+      <div v-if="patListLoaded">
+        <ul>
+          <li v-for="pat in patList.entry"
+          v-on:click="selectPat(pat)"> 
+            <a href="#">{{pat.resource.name[0].given[0] +" "+pat.resource.name[0].family}}</a>
+          </li>
+        </ul>
 
+      </div>
+    </div>
   </div>
 </template>
 
@@ -16,14 +29,31 @@ export default {
     return {
       oauth2:{},
       pract:{},
-      authorized:false
+      practLoaded:false,
+      authorized:false,
+      patList:{},
+      patListLoaded:false,
+      patId:null,
+      patSelected:false
     }
   },
   created () {
     if(localStorage.getItem("token")){
-      this.authorized=true
+      this.authorized=true;
     } else {
       this.saveToken()
+    }
+    if(this.authorized==true){
+      this.getPract();
+      this.getPatList();
+    }
+  },
+  updated () {
+    if(this.authorized==true && this.practLoaded==false){
+      this.getPract();
+    }
+    if(this.authorized==true && this.patListLoaded==false){
+      this.getPatList();
     }
   },
   methods : {
@@ -68,9 +98,43 @@ export default {
         },
       }).done(pract => {
         this.pract = pract;
+        this.practLoaded=true;
+        console.log(pract)
       }).catch(err => {
         console.log(err)
+        if(err.responseText == "Invalid token"){
+          localStorage.clear()
+          router.push("/")
+        }
       })
+    },
+
+    getPatList() {
+      const token = localStorage.getItem("token");
+      
+      const url = "https://test.midata.coop/fhir/Patient";
+
+      $.ajax({
+        url: url,
+        type: "GET",
+        dataType: "json",
+        headers: {
+          "Authorization": "Bearer " + token
+        },
+      }).done(patList => {
+        this.patList = patList;
+        this.patListLoaded=true;
+      }).catch(err => {
+        console.log(err)
+        if(err.responseText == "Invalid token"){
+          localStorage.clear()
+          router.push("/")
+        }
+      })
+    },
+
+    selectPat(pat) {
+      console.log(pat);
     },
 
     getUrlParameter(sParam) {
