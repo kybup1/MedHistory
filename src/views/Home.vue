@@ -5,14 +5,16 @@
       <h2 v-if="practLoaded">{{pract.name[0].given[0] + " " + pract.name[0].family}}</h2>
       <h2 v-else>Laden...</h2>
     </div>
+    <button v-on:click="logout">Ausloggen</button>
     <div class="patList">
       <div v-if="patListLoaded">
         <ul>
-          <li v-for="pat in patList.entry"
-          v-on:click="selectPat(pat)"> 
-            <a href="#">{{pat.resource.name[0].given[0] +" "+pat.resource.name[0].family}}</a>
+          <li v-for="patient in patList.entry"
+          v-on:click="selectPat(patient)"> 
+            <a href="#">{{patient.resource.name[0].given[0] +" "+patient.resource.name[0].family}}</a>
           </li>
         </ul>
+        <h3 v-if="patSelected">Patient: {{pat.name[0].given[0] + " " + pat.name[0].family}}</h3>
 
       </div>
     </div>
@@ -33,8 +35,12 @@ export default {
       authorized:false,
       patList:{},
       patListLoaded:false,
-      patId:null,
-      patSelected:false
+      pat:{},
+      patSelected:false,
+      observationList:{},
+      observationLoaded:false,
+      medicationList:{},
+      medicationLoaded:false
     }
   },
   created () {
@@ -48,12 +54,19 @@ export default {
       this.getPatList();
     }
   },
-  updated () {
+  beforeUpdate() {
+    console.log(this.patSelected)
     if(this.authorized==true && this.practLoaded==false){
       this.getPract();
     }
     if(this.authorized==true && this.patListLoaded==false){
       this.getPatList();
+    }
+    if(this.authorized==true && this.patSelected==true && this.observationLoaded==false) {
+      this.getObservations();
+    }
+    if(this.authorized==true && this.patSelected==true && this.medicationLoaded==false) {
+      this.getMedication();
     }
   },
   methods : {
@@ -75,11 +88,11 @@ export default {
           client_id: "MedHistory"
         }
       }).done(res => {
-        console.log(res)
         localStorage.clear()
         localStorage.setItem("token",res.access_token);
         localStorage.setItem("id",res.patient);
-        this.authorized=true
+        this.authorized=true;
+        this.$forceUpdate();
       }).catch(err => {
         console.log(err)
       })
@@ -101,11 +114,7 @@ export default {
         this.practLoaded=true;
         console.log(pract)
       }).catch(err => {
-        console.log(err)
-        if(err.responseText == "Invalid token"){
-          localStorage.clear()
-          router.push("/")
-        }
+        this.checkLogin(err);
       })
     },
 
@@ -125,16 +134,69 @@ export default {
         this.patList = patList;
         this.patListLoaded=true;
       }).catch(err => {
-        console.log(err)
-        if(err.responseText == "Invalid token"){
-          localStorage.clear()
-          router.push("/")
-        }
+        this.checkLogin(err);
+      })
+    },
+
+    getObservations() {
+      const token = localStorage.getItem("token");
+      
+      const url = "https://test.midata.coop/fhir/Observation?subject="+this.pat.id;
+
+      $.ajax({
+        url: url,
+        type: "GET",
+        dataType: "json",
+        headers: {
+          "Authorization": "Bearer " + token
+        },
+      }).done(observationList => {
+        this.observationList = observationList;
+        this.observationLoaded=true;
+        console.log(this.observationList)
+      }).catch(err => {
+        this.checkLogin(err);
+      })
+    },
+
+    getMedication() {
+      const token = localStorage.getItem("token");
+      
+      const url = "https://test.midata.coop/fhir/MedicationStatement?subject="+this.pat.id;
+
+      $.ajax({
+        url: url,
+        type: "GET",
+        dataType: "json",
+        headers: {
+          "Authorization": "Bearer " + token
+        },
+      }).done(medicationList => {
+        this.medicationList = medicationList;
+        this.medicationLoaded=true;
+        console.log(this.medicationList)
+      }).catch(err => {
+        this.checkLogin(err);
       })
     },
 
     selectPat(pat) {
-      console.log(pat);
+      this.patSelected=true;
+      this.pat=pat.resource;
+      this.observationLoaded=false;
+      this.medicationLoaded=false;
+    },
+
+    logout() {
+      localStorage.clear();
+      router.push("/");
+    },
+
+    checkLogin(err) {
+      if(err.responseText == "Invalid token" || err.responseText=="unauthorized"){
+        localStorage.clear()
+        router.push("/")
+      }
     },
 
     getUrlParameter(sParam) {
