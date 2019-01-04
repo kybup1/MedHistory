@@ -1,7 +1,7 @@
 <template>
   <div class="about">
-    <h1>Login to midata</h1>
-    <button v-on:click="login()">Login</button>
+    <h1>Login MedHistory</h1>
+    <button v-on:click="login()">Einloggen via Midata</button>
   </div>
 </template>
 
@@ -12,13 +12,13 @@ export default {
   data () {
     return {
       oauth2: {
-                    clientId: "MedHistory",
-                    secret: null,
-                    serviceUri: "https://test.midata.coop/fhir/",
-                    redirectUri: "http://localhost:8080/home",
-                    conformanceUri: "https://test.midata.coop/fhir/metadata",
-                    scope: ["practitioner/ *.read", "launch"],
-                    state: Math.round(Math.random() * 100000000).toString()
+        clientId: "MedHistory",
+        secret: null,
+        serviceUri: "https://test.midata.coop/fhir/",
+        redirectUri: "http://localhost:8080/home",
+        conformanceUri: "https://test.midata.coop/fhir/metadata",
+        scope: ["practitioner/ *.read", "launch"],
+        state: Math.round(Math.random() * 100000000).toString()
       }
 
     }

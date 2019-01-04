@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <div class="header">
-      <h1>logged in as</h1>
+      <h1>Eingeloggt als: </h1>
       <h2 v-if="practLoaded">{{pract.name[0].given[0] + " " + pract.name[0].family}}</h2>
       <h2 v-else>Laden...</h2>
     </div>
@@ -9,8 +9,7 @@
     <div class="patList">
       <div v-if="patListLoaded">
         <ul>
-          <li v-for="patient in patList.entry"
-          v-on:click="selectPat(patient)"> 
+          <li v-for="patient in patList.entry" :key="patient.resource.id" v-on:click="selectPat(patient)"> 
             <a href="#">{{patient.resource.name[0].given[0] +" "+patient.resource.name[0].family}}</a>
           </li>
         </ul>
@@ -29,46 +28,48 @@ import router from '../router.js'
 export default {
   data () {
     return {
-      oauth2:{},
-      pract:{},
-      practLoaded:false,
-      authorized:false,
-      patList:{},
-      patListLoaded:false,
-      pat:{},
-      patSelected:false,
-      observationList:{},
-      observationLoaded:false,
-      medicationList:{},
-      medicationLoaded:false
+      oauth2: {},
+      pract: {},
+      practLoaded: false,
+      authorized: false,
+      patList: {},
+      patListLoaded: false,
+      pat: {},
+      patSelected: false,
+      observationList: {},
+      observationLoaded: false,
+      medicationList: {},
+      medicationLoaded: false
     }
   },
   created () {
     if(localStorage.getItem("token")){
-      this.authorized=true;
+      this.authorized = true;
     } else {
       this.saveToken()
     }
-    if(this.authorized==true){
+    if(this.authorized == true){
       this.getPract();
       this.getPatList();
     }
   },
+
   beforeUpdate() {
     console.log(this.patSelected)
-    if(this.authorized==true && this.practLoaded==false){
+    if(this.authorized == true && this.practLoaded == false){
       this.getPract();
     }
-    if(this.authorized==true && this.patListLoaded==false){
+    if(this.authorized == true && this.patListLoaded == false){
       this.getPatList();
     }
-    if(this.authorized==true && this.patSelected==true && this.observationLoaded==false) {
+    if(this.authorized == true && this.patSelected == true && this.observationLoaded == false) {
       this.getObservations();
     }
-    if(this.authorized==true && this.patSelected==true && this.medicationLoaded==false) {
+    if(this.authorized == true && this.patSelected == true && this.medicationLoaded == false) {
       this.getMedication();
     }
   },
+
   methods : {
     saveToken() {
       var state = this.getUrlParameter("state");
@@ -91,12 +92,13 @@ export default {
         localStorage.clear()
         localStorage.setItem("token",res.access_token);
         localStorage.setItem("id",res.patient);
-        this.authorized=true;
+        this.authorized = true;
         this.$forceUpdate();
       }).catch(err => {
         console.log(err)
       })
     },
+
     getPract() {
       const token = localStorage.getItem("token");
       const id = localStorage.getItem("id")
@@ -111,7 +113,7 @@ export default {
         },
       }).done(pract => {
         this.pract = pract;
-        this.practLoaded=true;
+        this.practLoaded = true;
         console.log(pract)
       }).catch(err => {
         this.checkLogin(err);
@@ -152,7 +154,7 @@ export default {
         },
       }).done(observationList => {
         this.observationList = observationList;
-        this.observationLoaded=true;
+        this.observationLoaded = true;
         console.log(this.observationList)
       }).catch(err => {
         this.checkLogin(err);
@@ -173,7 +175,7 @@ export default {
         },
       }).done(medicationList => {
         this.medicationList = medicationList;
-        this.medicationLoaded=true;
+        this.medicationLoaded = true;
         console.log(this.medicationList)
       }).catch(err => {
         this.checkLogin(err);
@@ -181,10 +183,10 @@ export default {
     },
 
     selectPat(pat) {
-      this.patSelected=true;
-      this.pat=pat.resource;
-      this.observationLoaded=false;
-      this.medicationLoaded=false;
+      this.patSelected = true;
+      this.pat = pat.resource;
+      this.observationLoaded = false;
+      this.medicationLoaded = false;
     },
 
     logout() {
