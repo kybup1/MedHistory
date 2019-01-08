@@ -7,6 +7,7 @@
 
 <script>
 import $ from 'jquery';
+import router from '../router.js'
 
 export default {
   data () {
@@ -21,6 +22,11 @@ export default {
         state: Math.round(Math.random() * 100000000).toString()
       }
 
+    }
+  },
+  created () {
+    if(localStorage.getItem("token")) {
+      router.push("/home")
     }
   },
   methods: {
