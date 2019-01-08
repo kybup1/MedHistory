@@ -195,7 +195,8 @@ export default {
     },
 
     checkLogin(err) {
-      if(err.responseText == "Invalid token" || err.responseText=="unauthorized"){
+      console.log(err)
+      if(err.responseText == "Invalid token" || err.responseText=="Invalid or expired authToken."){
         localStorage.clear()
         router.push("/")
       }
