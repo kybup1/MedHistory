@@ -20,6 +20,24 @@
   </nav>
   
   <article>
+    <p>Medikation: {{ medication }}</p>
+    <p>Einnahme Morgen: {{ morning }}</p>
+    <p>Einnahme Mittag: {{ noon }}</p>
+    <p>Einnahme Abend: {{ evening }}</p>
+    <p>Einnahme Nacht: {{ night }}</p>
+    <p>Einheit: {{ unit }}</p>
+    <p>Grund: {{ reason }}</p>
+    <p>von: {{ startdate }}</p>
+    <p>bis: {{ enddate }}</p>
+    <p>Einnahmeart: {{ route }}</p>
+  </article>
+</section>
+
+<footer>
+  <p>Footer</p>
+</footer>
+
+
     <div class="home">
       <div class="header">
         <h1>Eingeloggt als: </h1>
@@ -28,13 +46,6 @@
       </div>
       <button v-on:click="logout">Ausloggen</button>
     </div>
-  </article>
-</section>
-
-<footer>
-  <p>Footer</p>
-</footer>
-
 
 
   </div>
@@ -59,7 +70,18 @@ export default {
       observationList: {},
       observationLoaded: false,
       medicationList: {},
-      medicationLoaded: false
+      medicationLoaded: false,
+      medication: "",
+      morning: "",
+      noon: "",
+      evening: "",
+      night: "",
+      unit: "",
+      startdate: "",
+      enddate: "",
+      reason: "",
+      route: "",
+      
     }
   },
   created () {
@@ -75,7 +97,7 @@ export default {
   },
 
   beforeUpdate() {
-    console.log(this.patSelected)
+    console.log("patSelected: " + this.patSelected)
     if(this.authorized == true && this.practLoaded == false){
       this.getPract();
     }
@@ -134,7 +156,7 @@ export default {
       }).done(pract => {
         this.pract = pract;
         this.practLoaded = true;
-        console.log(pract)
+        console.log("pract: " + pract)
       }).catch(err => {
         this.checkLogin(err);
       })
@@ -175,7 +197,7 @@ export default {
       }).done(observationList => {
         this.observationList = observationList;
         this.observationLoaded = true;
-        console.log(this.observationList)
+        console.log("observationList: " + this.observationList)
       }).catch(err => {
         this.checkLogin(err);
       })
@@ -196,7 +218,8 @@ export default {
       }).done(medicationList => {
         this.medicationList = medicationList;
         this.medicationLoaded = true;
-        console.log(this.medicationList)
+        console.log("medicationList: " + this.medicationList)
+        this.showMedication();
       }).catch(err => {
         this.checkLogin(err);
       })
@@ -215,7 +238,7 @@ export default {
     },
 
     checkLogin(err) {
-      console.log(err)
+      console.log("error: " + err)
       if(err.responseText == "Invalid token" || err.responseText=="Invalid or expired authToken."){
         localStorage.clear()
         router.push("/")
@@ -232,6 +255,29 @@ export default {
           return decodeURIComponent(res);
         } 
       }
+    },
+
+    showMedication() {
+      this.medication = this.medicationList.entry[0].resource.medicationCodeableConcept.coding[0].display;
+      //this.morning = this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[0]
+
+      for (let i = 0; i < this.medicationList.entry[0].resource.dosage[0].timing.repeat.when.length; i++) {
+        if(this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[i] == "PCM") {
+          this.morning = this.medicationList.entry[0].resource.dosage[0].doseQuantity.value;
+        } else if (this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[i] == "PCD") {
+          this.noon = this.medicationList.entry[0].resource.dosage[0].doseQuantity.value;
+        } else if (this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[i] == "PCV") {
+          this.evening = this.medicationList.entry[0].resource.dosage[0].doseQuantity.value;
+        } else if (this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[i] == "eruieren") {
+          this.night = this.medicationList.entry[0].resource.dosage[0].doseQuantity.value;
+        } 
+        
+      }
+      this.unit = this.medicationList.entry[0].resource.dosage[0].doseQuantity.unit;
+      this.startdate = this.medicationList.entry[0].resource.dosage[0].timing.repeat.boundsPeriod.start;
+      this.enddate = this.medicationList.entry[0].resource.dosage[0].timing.repeat.boundsPeriod.end;
+      this.reason = this.medicationList.entry[0].resource.reasonCode[0].text;
+      this.route = this.medicationList.entry[0].resource.dosage[0].route.coding[0].display;
     }
   }
 }
@@ -248,7 +294,7 @@ h3 {
 }
 /* Style the header */
 header {
-  background-color: #666;
+  background-color: #bbb;
   padding: 30px;
   text-align: center;
   font-size: 35px;
@@ -260,7 +306,7 @@ header {
 nav {
   float: left;
   width: 20%;
-  height: 300px; /* only for demonstration, should be removed */
+  height: 500px; /*height: 300px; /* only for demonstration, should be removed */
   background: #ccc;
   padding: 20px;
 }
@@ -276,7 +322,7 @@ article {
   padding: 20px;
   width: 80%;
   background-color: #f1f1f1;
-  height: 300px; /* only for demonstration, should be removed */
+  height: 500px; /* only for demonstration, should be removed */
 }
 
 /* Clear floats after the columns */
@@ -288,7 +334,7 @@ section:after {
 
 /* Style the footer */
 footer {
-  background-color: #777;
+  background-color: #bbb;
   padding: 10px;
   text-align: center;
   color: white;
