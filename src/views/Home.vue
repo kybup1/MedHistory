@@ -20,23 +20,13 @@
   </nav>
   
   <article>
-    <p>Medikation: {{ medication }}</p>
-    <p>Einnahme Morgen: {{ morning }}</p>
-    <p>Einnahme Mittag: {{ noon }}</p>
-    <p>Einnahme Abend: {{ evening }}</p>
-    <p>Einnahme Nacht: {{ night }}</p>
-    <p>Einheit: {{ unit }}</p>
-    <p>Grund: {{ reason }}</p>
-    <p>von: {{ startdate }}</p>
-    <p>bis: {{ enddate }}</p>
-    <p>Einnahmeart: {{ route }}</p>
+    <v-client-table :data="tableData" :columns="columns" :options="options"></v-client-table>
   </article>
 </section>
 
 <footer>
   <p>Footer</p>
 </footer>
-
 
     <div class="home">
       <div class="header">
@@ -72,15 +62,21 @@ export default {
       medicationList: {},
       medicationLoaded: false,
       medication: "",
-      morning: "",
-      noon: "",
-      evening: "",
-      night: "",
+      morning: "-",
+      noon: "-",
+      evening: "-",
+      night: "-",
       unit: "",
       startdate: "",
       enddate: "",
       reason: "",
       route: "",
+      columns: ['medikament', 'gtin', 'morgen', 'mittag','abend','nacht', 'einheit', 'von', 'bis', 'grund'],
+      tableData: [],
+      options: {
+        // see the options API
+      },
+      temp: Object,
       
     }
   },
@@ -258,27 +254,51 @@ export default {
     },
 
     showMedication() {
-      this.medication = this.medicationList.entry[0].resource.medicationCodeableConcept.coding[0].display;
-      //this.morning = this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[0]
+      for (let i = 0; i < /*this.medicationList.entry.length*/3; i++) {
+         let medication = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].display;
+      
+        let morning = "-";
+        let noon = "-";
+        let evening = "-";
+        let night = "-";
+        for (let j = 0; j < this.medicationList.entry[i].resource.dosage[0].timing.repeat.when.length; j++) {
+          if(this.medicationList.entry[i].resource.dosage[0].timing.repeat.when[j] == "PCM") {
+            morning = this.medicationList.entry[i].resource.dosage[0].doseQuantity.value;
+          } else if (this.medicationList.entry[i].resource.dosage[0].timing.repeat.when[j] == "PCD") {
+            noon = this.medicationList.entry[i].resource.dosage[0].doseQuantity.value;
+          } else if (this.medicationList.entry[i].resource.dosage[0].timing.repeat.when[j] == "PCV") {
+            evening = this.medicationList.entry[i].resource.dosage[0].doseQuantity.value;
+          } else if (this.medicationList.entry[i].resource.dosage[0].timing.repeat.when[j] == "HS") {
+            night = this.medicationList.entry[i].resource.dosage[0].doseQuantity.value;
+          } 
+          
+        }
+        let unit = this.medicationList.entry[i].resource.dosage[0].doseQuantity.unit;
+        let startdate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.start;
+        let enddate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.end;
+        let reason = this.medicationList.entry[i].resource.reasonCode[0].text;
+        let route = this.medicationList.entry[i].resource.dosage[0].route.coding[0].display;
 
-      for (let i = 0; i < this.medicationList.entry[0].resource.dosage[0].timing.repeat.when.length; i++) {
-        if(this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[i] == "PCM") {
-          this.morning = this.medicationList.entry[0].resource.dosage[0].doseQuantity.value;
-        } else if (this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[i] == "PCD") {
-          this.noon = this.medicationList.entry[0].resource.dosage[0].doseQuantity.value;
-        } else if (this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[i] == "PCV") {
-          this.evening = this.medicationList.entry[0].resource.dosage[0].doseQuantity.value;
-        } else if (this.medicationList.entry[0].resource.dosage[0].timing.repeat.when[i] == "eruieren") {
-          this.night = this.medicationList.entry[0].resource.dosage[0].doseQuantity.value;
-        } 
+        let temp = new this.medi(medication,1234,morning,noon,evening,night,unit,startdate,enddate,route,reason);
+        this.tableData.push(temp);
         
       }
-      this.unit = this.medicationList.entry[0].resource.dosage[0].doseQuantity.unit;
-      this.startdate = this.medicationList.entry[0].resource.dosage[0].timing.repeat.boundsPeriod.start;
-      this.enddate = this.medicationList.entry[0].resource.dosage[0].timing.repeat.boundsPeriod.end;
-      this.reason = this.medicationList.entry[0].resource.reasonCode[0].text;
-      this.route = this.medicationList.entry[0].resource.dosage[0].route.coding[0].display;
-    }
+     
+    },
+
+    medi(medicament,gtin,morning,noon,evening,night,unit,startdate,enddate,route,reason){
+      this.medikament = medicament;
+      this.gtin = gtin;
+      this.morgen = morning;
+      this.mittag = noon;
+      this.abend = evening;
+      this.nacht = night;
+      this.einheit = unit;
+      this.von = startdate;
+      this.bis = enddate;
+      this.einnahmeart = route;
+      this.grund = reason;
+    },
   }
 }
 </script>
