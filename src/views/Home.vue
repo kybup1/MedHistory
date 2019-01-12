@@ -7,19 +7,27 @@
   <section>
   <nav class="main">
     <div class="patList">
+      <p><b>Patientenauswahl</b></p>
       <div v-if="patListLoaded">
         <ul>
           <li v-for="patient in patList.entry" :key="patient.resource.id" v-on:click="selectPat(patient)"> 
             <a href="#">{{patient.resource.name[0].given[0] +" "+patient.resource.name[0].family}}</a>
           </li>
-        </ul>
-        <h3 v-if="patSelected">Patient: {{pat.name[0].given[0] + " " + pat.name[0].family}}</h3>
+        </ul> 
+        <!--<h3 v-if="patSelected">Patient: {{pat.name[0].given[0] + " " + pat.name[0].family}}</h3> !-->
+
+        <div class="test">
+          <h1>Eingeloggt als: </h1>
+          <h2 v-if="practLoaded">{{pract.name[0].given[0] + " " + pract.name[0].family}}</h2>
+          <h2 v-else>Laden...</h2>
+          <button v-on:click="logout">Ausloggen</button>
+        </div>
 
       </div>
     </div>
   </nav>
   <article>
-    <h2>{{ patName }} </h2>
+    <h4>{{ patName }} </h4>
     <p>{{ patBirthdate }} ( {{ patGender }} )</p> 
     <p>{{ patAdress }} / {{ patPhone }} </p>
     <p>Körpergrösse / Gewicht: {{ patHeight }} / {{ patWeight }} </p>
@@ -27,14 +35,6 @@
   </article>
 </section>
 
-    <div class="home">
-      <div class="header">
-        <h1>Eingeloggt als: </h1>
-        <h2 v-if="practLoaded">{{pract.name[0].given[0] + " " + pract.name[0].family}}</h2>
-        <h2 v-else>Laden...</h2>
-      </div>
-      <button v-on:click="logout">Ausloggen</button>
-    </div>
 
 
   </div>
@@ -104,22 +104,6 @@ export default {
     }
   },
 
-  beforeUpdate() {
-    console.log("patSelected: " + this.patSelected)
-    if(this.authorized == true && this.practLoaded == false){
-      this.getPract();
-    }
-    if(this.authorized == true && this.patListLoaded == false){
-      this.getPatList();
-    }
-    if(this.authorized == true && this.patSelected == true && this.observationLoaded == false) {
-      this.getObservations();
-    }
-    if(this.authorized == true && this.patSelected == true && this.medicationLoaded == false) {
-      this.getMedication();
-    }
-  },
-
   methods : {
     saveToken() {
       var state = this.getUrlParameter("state");
@@ -184,7 +168,7 @@ export default {
         },
       }).done(patList => {
         this.patList = patList;
-        this.patListLoaded=true;
+        this.patListLoaded = true;
       }).catch(err => {
         this.checkLogin(err);
       })
@@ -204,7 +188,6 @@ export default {
         },
       }).done(observationList => {
         this.observationList = observationList;
-        this.observationLoaded = true;
         console.log("observationList: " + this.observationList)
         this.showObservation();
       }).catch(err => {
@@ -226,7 +209,6 @@ export default {
         },
       }).done(medicationList => {
         this.medicationList = medicationList;
-        this.medicationLoaded = true;
         console.log("medicationList: " + this.medicationList)
         this.showMedication();
       }).catch(err => {
@@ -235,10 +217,12 @@ export default {
     },
 
     selectPat(pat) {
+      this.tableData = [];
       this.patSelected = true;
       this.pat = pat.resource;
-      this.observationLoaded = false;
-      this.medicationLoaded = false;
+
+      this.getObservations();
+      this.getMedication();
 
       this.patName = this.pat.name[0].given[0] + " " + this.pat.name[0].family;
       this.patAdress = this.pat.address[0].line[0] + ", " + this.pat.address[0].postalCode + " " + this.pat.address[0].city;
@@ -278,57 +262,58 @@ export default {
     },
 
     showObservation() {
-      for (let i = 0; i < this.observationList.entry.length; i++) {
-        if(this.observationList.entry[i].resource.meta.profile[0] == "http://hl7.org/fhir/bodyweight") {
-          this.patWeight = this.observationList.entry[i].resource.valueQuantity.value;
-          this.patWeight += (" " + this.observationList.entry[i].resource.valueQuantity.unit);
-        } else if (this.observationList.entry[i].resource.meta.profile[0] == "http://hl7.org/fhir/bodyheight") {
-          this.patHeight = this.observationList.entry[i].resource.valueQuantity.value;
-          this.patHeight += (" " + this.observationList.entry[i].resource.valueQuantity.unit);
+      if(this.observationList.entry) {
+        for (let i = 0; i < this.observationList.entry.length; i++) {
+          if(this.observationList.entry[i].resource.meta.profile[0] == "http://hl7.org/fhir/bodyweight") {
+            this.patWeight = this.observationList.entry[i].resource.valueQuantity.value;
+            this.patWeight += (" " + this.observationList.entry[i].resource.valueQuantity.unit);
+          } else if (this.observationList.entry[i].resource.meta.profile[0] == "http://hl7.org/fhir/bodyheight") {
+            this.patHeight = this.observationList.entry[i].resource.valueQuantity.value;
+            this.patHeight += (" " + this.observationList.entry[i].resource.valueQuantity.unit);
+          }
         }
-        
       }
     },
 
     showMedication() {
-      for (let i = 0; i < this.medicationList.entry.length; i++) {
-        let medication = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].display;
-        let gtin = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].code;
-              
-        let morning = "-";
-        let noon = "-";
-        let evening = "-";
-        let night = "-";
+      if(this.medicationList.entry) {
+        for (let i = 0; i < this.medicationList.entry.length; i++) {
+          let medication = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].display;
+          let gtin = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].code;
+                
+          let morning = "-";
+          let noon = "-";
+          let evening = "-";
+          let night = "-";
 
-        for (let j = 0; j < this.medicationList.entry[i].resource.dosage.length; j++) {
-          for (let k = 0; k < this.medicationList.entry[i].resource.dosage[j].timing.repeat.when.length; k++) {
-            if(this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCM") {
-              morning = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-            } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCD") {
-              noon = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-            } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCV") {
-              evening = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-            } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "HS") {
-              night = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-            } 
+          for (let j = 0; j < this.medicationList.entry[i].resource.dosage.length; j++) {
+            for (let k = 0; k < this.medicationList.entry[i].resource.dosage[j].timing.repeat.when.length; k++) {
+              if(this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCM") {
+                morning = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCD") {
+                noon = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCV") {
+                evening = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "HS") {
+                night = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+              } 
+            }
           }
-        }
 
-        let unit = this.medicationList.entry[i].resource.dosage[0].doseQuantity.unit;
-        let startdate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.start;
-        let enddate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.end;
-        let note = '';
-        if(this.medicationList.entry[i].resource.note) {
-          note = this.medicationList.entry[i].resource.note[0].text;
-        }
-        let reason = this.medicationList.entry[i].resource.reasonCode[0].text;
-        let route = this.medicationList.entry[i].resource.dosage[0].route.coding[0].display;
+          let unit = this.medicationList.entry[i].resource.dosage[0].doseQuantity.unit;
+          let startdate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.start;
+          let enddate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.end;
+          let note = '';
+          if(this.medicationList.entry[i].resource.note) {
+            note = this.medicationList.entry[i].resource.note[0].text;
+          }
+          let reason = this.medicationList.entry[i].resource.reasonCode[0].text;
+          let route = this.medicationList.entry[i].resource.dosage[0].route.coding[0].display;
 
-        let temp = new this.medi(medication,gtin,morning,noon,evening,night,unit,startdate,enddate,note,route,reason);
-        this.tableData.push(temp);
-        
+          let temp = new this.medi(medication,gtin,morning,noon,evening,night,unit,startdate,enddate,note,route,reason);
+          this.tableData.push(temp);
+        }
       }
-     
     },
 
     medi(medicament,gtin,morning,noon,evening,night,unit,startdate,enddate,note,route,reason){

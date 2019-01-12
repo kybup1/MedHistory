@@ -5,6 +5,10 @@
   body {
     margin: 20px 10px;
   }
+
+  .test {
+    margin-top: 300px;
+  }
   
   h3 {
     padding:6px 0px 0px 0px;
@@ -12,7 +16,7 @@
   /* Style the header */
   header {
     margin: 0px;
-    background-color: #bbb;
+    background-color: #009FCD;
     text-align: center;
     font-size: 35px;
     color: white;
@@ -23,7 +27,7 @@
   nav.main {
     float: left;
     width: 20%;
-    background: #ccc;
+    background: #C5E6F5;
     padding: 20px;
   }
   
@@ -37,7 +41,7 @@
     float: left;
     padding: 20px;
     width: 80%;
-    background-color: #f1f1f1;
+    background-color: #f9f9f9;
     min-height: 500px;
     height: auto;
      /* only for demonstration, should be removed */
