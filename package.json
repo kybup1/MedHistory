@@ -8,6 +8,7 @@
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
+    "btoa": "^1.2.1",
     "fhir": "^4.4.9",
     "jquery": "^3.3.1",
     "node-fetch": "^2.3.0",
