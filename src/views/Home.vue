@@ -5,7 +5,7 @@
   </header>
 
   <section>
-  <nav>
+  <nav class="main">
     <div class="patList">
       <div v-if="patListLoaded">
         <ul>
@@ -20,6 +20,10 @@
   </nav>
   
   <article>
+    <h2>{{ patName }} </h2>
+    <p>{{ patBirthdate }} ( {{ patGender }} )</p> 
+    <p>{{ patAdress }} / {{ patPhone }} </p>
+    <p>Körpergrösse / Gewicht: {{ patHeight }} / {{ patWeight }} </p>
     <v-client-table :data="tableData" :columns="columns" :options="options"></v-client-table>
   </article>
 </section>
@@ -61,6 +65,17 @@ export default {
       observationLoaded: false,
       medicationList: {},
       medicationLoaded: false,
+      // Patient Data <<
+      patName: "",
+      patBirthdate: "",
+      patAdress: "",
+      patGender: "",
+      // >>
+      // from the observations
+      patHeight: "",
+      patWeight: "",
+      // >>
+      // from the medicationStatements  <<
       medication: "",
       morning: "-",
       noon: "-",
@@ -71,10 +86,11 @@ export default {
       enddate: "",
       reason: "",
       route: "",
-      columns: ['medikament', 'gtin', 'morgen', 'mittag','abend','nacht', 'einheit', 'von', 'bis', 'grund'],
+      // >>
+      columns: ['medikament', 'gtin', 'morgen', 'mittag','abend','nacht', 'einheit', 'von', 'bis','anleitung', 'grund'],
       tableData: [],
       options: {
-        // see the options API
+        filterable: false,
       },
       temp: Object,
       
@@ -226,6 +242,17 @@ export default {
       this.pat = pat.resource;
       this.observationLoaded = false;
       this.medicationLoaded = false;
+
+      this.patName = this.pat.name[0].given[0] + " " + this.pat.name[0].family;
+      this.patAdress = this.pat.address[0].line[0] + ", " + this.pat.address[0].postalCode + " " + this.pat.address[0].city;
+      this.patBirthdate = this.pat.birthDate;
+      this.patGender = this.pat.gender;
+      for (let i = 0; i < this.pat.telecom.length; i++) {
+        if(this.pat.telecom[i].system == 'phone') {
+          this.patPhone = this.pat.telecom[i].value;
+        }
+      }
+      
     },
 
     logout() {
@@ -254,39 +281,47 @@ export default {
     },
 
     showMedication() {
-      for (let i = 0; i < /*this.medicationList.entry.length*/3; i++) {
-         let medication = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].display;
-      
+      for (let i = 0; i < this.medicationList.entry.length; i++) {
+        let medication = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].display;
+        let gtin = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].code;
+              
         let morning = "-";
         let noon = "-";
         let evening = "-";
         let night = "-";
-        for (let j = 0; j < this.medicationList.entry[i].resource.dosage[0].timing.repeat.when.length; j++) {
-          if(this.medicationList.entry[i].resource.dosage[0].timing.repeat.when[j] == "PCM") {
-            morning = this.medicationList.entry[i].resource.dosage[0].doseQuantity.value;
-          } else if (this.medicationList.entry[i].resource.dosage[0].timing.repeat.when[j] == "PCD") {
-            noon = this.medicationList.entry[i].resource.dosage[0].doseQuantity.value;
-          } else if (this.medicationList.entry[i].resource.dosage[0].timing.repeat.when[j] == "PCV") {
-            evening = this.medicationList.entry[i].resource.dosage[0].doseQuantity.value;
-          } else if (this.medicationList.entry[i].resource.dosage[0].timing.repeat.when[j] == "HS") {
-            night = this.medicationList.entry[i].resource.dosage[0].doseQuantity.value;
-          } 
-          
+
+        for (let j = 0; j < this.medicationList.entry[i].resource.dosage.length; j++) {
+          for (let k = 0; k < this.medicationList.entry[i].resource.dosage[j].timing.repeat.when.length; k++) {
+            if(this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCM") {
+              morning = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+            } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCD") {
+              noon = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+            } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCV") {
+              evening = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+            } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "HS") {
+              night = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+            } 
+          }
         }
+
         let unit = this.medicationList.entry[i].resource.dosage[0].doseQuantity.unit;
         let startdate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.start;
         let enddate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.end;
+        let note = '';
+        if(this.medicationList.entry[i].resource.note) {
+          note = this.medicationList.entry[i].resource.note[0].text;
+        }
         let reason = this.medicationList.entry[i].resource.reasonCode[0].text;
         let route = this.medicationList.entry[i].resource.dosage[0].route.coding[0].display;
 
-        let temp = new this.medi(medication,1234,morning,noon,evening,night,unit,startdate,enddate,route,reason);
+        let temp = new this.medi(medication,gtin,morning,noon,evening,night,unit,startdate,enddate,note,route,reason);
         this.tableData.push(temp);
         
       }
      
     },
 
-    medi(medicament,gtin,morning,noon,evening,night,unit,startdate,enddate,route,reason){
+    medi(medicament,gtin,morning,noon,evening,night,unit,startdate,enddate,note,route,reason){
       this.medikament = medicament;
       this.gtin = gtin;
       this.morgen = morning;
@@ -297,75 +332,9 @@ export default {
       this.von = startdate;
       this.bis = enddate;
       this.einnahmeart = route;
+      this.anleitung = note;
       this.grund = reason;
     },
   }
 }
 </script>
-
-<style scoped>
-
-* {
-  box-sizing: border-box;
-}
-
-h3 {
-  margin: 0;
-}
-/* Style the header */
-header {
-  background-color: #bbb;
-  padding: 30px;
-  text-align: center;
-  font-size: 35px;
-  color: white;
-  height: 100px;
-}
-
-/* Create two columns/boxes that floats next to each other */
-nav {
-  float: left;
-  width: 20%;
-  height: 500px; /*height: 300px; /* only for demonstration, should be removed */
-  background: #ccc;
-  padding: 20px;
-}
-
-/* Style the list inside the menu */
-nav ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-article {
-  float: left;
-  padding: 20px;
-  width: 80%;
-  background-color: #f1f1f1;
-  height: 500px; /* only for demonstration, should be removed */
-}
-
-/* Clear floats after the columns */
-section:after {
-  content: "";
-  display: table;
-  clear: both;
-}
-
-/* Style the footer */
-footer {
-  background-color: #bbb;
-  padding: 10px;
-  text-align: center;
-  color: white;
-}
-
-/* Responsive layout - makes the two columns/boxes stack on top of each other instead of next to each other, on small screens */
-@media (max-width: 600px) {
-  nav, article {
-    width: 100%;
-    height: auto;
-  }
-}
-</style>
-
