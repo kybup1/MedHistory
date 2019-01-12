@@ -15,7 +15,7 @@ const fetch = require("node-fetch");
 // parser.parseResources(newResources);
 
 var xmlParser = require('xml2json-light')
-var Fhir = require('fhir').Fhir;
+var Fhir = require('./libs/fhir').Fhir;
 var fhir = new Fhir();
 
 let chmedToMidata = {};
@@ -89,19 +89,20 @@ chmedToMidata.saveMedication = (chmed16a, miToken, patId) => {
               }
             medStatements[i] = medStat;
         }
+        console.log(medStatements[0].dosage)
+
         medStatements = chmedToMidata.checkForRedundancy(medStatements, existingMedStatements);
 
-        console.log(medStatements)
-        medStatements.forEach(e => {
-            fetch(chmedToMidata.midataUrl+"/MedicationStatement", {
-                method:"POST",
-                headers : {
-                    "Authorization": "Bearer " + miToken,
-                    "Content-Type":"application/json"
-                },
-                body:JSON.stringify(e)
-            }).then(res => res.text()).then(res => console.log(res)).catch(err => console.log(err));
-        })
+        // medStatements.forEach(e => {
+        //     fetch(chmedToMidata.midataUrl+"/MedicationStatement", {
+        //         method:"POST",
+        //         headers : {
+        //             "Authorization": "Bearer " + miToken,
+        //             "Content-Type":"application/json"
+        //         },
+        //         body:JSON.stringify(e)
+        //     }).then(res => res.text()).then(res => console.log(res)).catch(err => console.log(err));
+        // })
         
     })
 }
@@ -176,6 +177,6 @@ let miToken = "m2tIUGLJdfAvWBlMhXIRwUids-JR-PWwmGuNtVuGZ4k9_X6mxnzjXWmLYCWE5t26r
 let patId = "Patient/5c3a50cbbcbc873680735900";
 
 
-// chmedToMidata.saveMedication(testStrSusanne, miToken, patId);
+chmedToMidata.saveMedication(testStrSusanne, miToken, patId);
 
 // chmedToMidata.saveObservations(testStrSusanne, miToken,patId);
