@@ -18,7 +18,6 @@
       </div>
     </div>
   </nav>
-  
   <article>
     <h2>{{ patName }} </h2>
     <p>{{ patBirthdate }} ( {{ patGender }} )</p> 
@@ -27,10 +26,6 @@
     <v-client-table :data="tableData" :columns="columns" :options="options"></v-client-table>
   </article>
 </section>
-
-<footer>
-  <p>Footer</p>
-</footer>
 
     <div class="home">
       <div class="header">
@@ -70,6 +65,7 @@ export default {
       patBirthdate: "",
       patAdress: "",
       patGender: "",
+      patPhone: "",
       // >>
       // from the observations
       patHeight: "",
@@ -210,6 +206,7 @@ export default {
         this.observationList = observationList;
         this.observationLoaded = true;
         console.log("observationList: " + this.observationList)
+        this.showObservation();
       }).catch(err => {
         this.checkLogin(err);
       })
@@ -277,6 +274,19 @@ export default {
           var res = sParameterName[1].replace(/\+/g, '%20');
           return decodeURIComponent(res);
         } 
+      }
+    },
+
+    showObservation() {
+      for (let i = 0; i < this.observationList.entry.length; i++) {
+        if(this.observationList.entry[i].resource.meta.profile[0] == "http://hl7.org/fhir/bodyweight") {
+          this.patWeight = this.observationList.entry[i].resource.valueQuantity.value;
+          this.patWeight += (" " + this.observationList.entry[i].resource.valueQuantity.unit);
+        } else if (this.observationList.entry[i].resource.meta.profile[0] == "http://hl7.org/fhir/bodyheight") {
+          this.patHeight = this.observationList.entry[i].resource.valueQuantity.value;
+          this.patHeight += (" " + this.observationList.entry[i].resource.valueQuantity.unit);
+        }
+        
       }
     },
 
