@@ -1,42 +1,65 @@
 <template>
   <div>
-  <header>
-    <h3>MedHistory</h3>
-  </header>
-
-  <section>
-  <nav class="main">
-    <div class="patList">
-      <p><b>Patientenauswahl</b></p>
-      <div v-if="patListLoaded">
-        <ul>
-          <li v-for="patient in patList.entry" :key="patient.resource.id" v-on:click="selectPat(patient)"> 
-            <a href="#">{{patient.resource.name[0].given[0] +" "+patient.resource.name[0].family}}</a>
-          </li>
-        </ul> 
-        <!--<h3 v-if="patSelected">Patient: {{pat.name[0].given[0] + " " + pat.name[0].family}}</h3> !-->
-
-        <div class="test">
-          <h1>Eingeloggt als: </h1>
-          <h2 v-if="practLoaded">{{pract.name[0].given[0] + " " + pract.name[0].family}}</h2>
-          <h2 v-else>Laden...</h2>
-          <button v-on:click="logout">Ausloggen</button>
+    <div class="container">
+        <div class="columns">
+            <div class="column is-3 ">
+                <aside class="menu is-hidden-mobile">
+                    <p class="menu-label">
+                        Patientenauswahl
+                    </p>
+                    <ul class="menu-list" v-if="patListLoaded">
+                      <li v-for="patient in patList.entry" :key="patient.resource.id" v-on:click="selectPat(patient)"> 
+                        <a href="#" :class="{'is-active': patient.resource.id == selected}" @click="selected = patient.resource.id"> {{patient.resource.name[0].given[0] +" "+patient.resource.name[0].family}}</a>
+                      </li>
+                    </ul> <!--
+                    <ul>
+                        <li><a class="is-active">Dashboard</a></li>
+                        <li><a>Customers</a></li>
+                    </ul> !-->
+                </aside>
+            </div>
+            <div class="column twothird">
+                <nav class="breadcrumb" aria-label="breadcrumbs">
+                    <ul>
+                        <li class="is-active"><a href="../">Medikationshistorie</a></li>
+                        <li><a href="../">Timeline</a></li>
+                    </ul>
+                </nav>
+                <section class="hero is-info welcome is-small">
+                    <div class="hero-body">
+                        <div class="logo">
+                          <img class="imgLogo" src="../assets/medLogoWhite.png">
+                        </div>
+                        <div class="logout">
+                          <div>
+                          <h2 v-if="practLoaded">Hallo {{pract.name[0].given[0] + " " + pract.name[0].family}}</h2>
+                          <h2 v-else>Laden...</h2>
+                          <button v-on:click="logout">Ausloggen</button>
+                          </div>
+                        </div>
+                    </div>
+                </section>
+                <div class="columns">
+                    <div class="column">
+                        <div class="card events-card">
+                            <div class="card-table">
+                                <div v-if="medicationLoaded" class="content">
+                                    <h4>{{ patName }} </h4>
+                                    <p>{{ patBirthdate }} ( {{ patGender }} )</p> 
+                                    <p>{{ patAdress }} / {{ patPhone }} </p>
+                                    <p>Körpergrösse / Gewicht: {{ patHeight }} / {{ patWeight }} </p>
+                                    <v-client-table :data="tableData" :columns="columns" :options="options"></v-client-table>
+                                </div>
+                                <div v-if="!medicationLoaded" class="content">
+                                  <p>Bitte wählen Sie einen Patienten aus.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-
-      </div>
     </div>
-  </nav>
-  <article>
-    <h4>{{ patName }} </h4>
-    <p>{{ patBirthdate }} ( {{ patGender }} )</p> 
-    <p>{{ patAdress }} / {{ patPhone }} </p>
-    <p>Körpergrösse / Gewicht: {{ patHeight }} / {{ patWeight }} </p>
-    <v-client-table :data="tableData" :columns="columns" :options="options"></v-client-table>
-  </article>
-</section>
-
-
-
   </div>
 </template>
 
@@ -48,6 +71,7 @@ import router from '../router.js'
 export default {
   data () {
     return {
+      selected: undefined,
       oauth2: {},
       pract: {},
       practLoaded: false,
@@ -83,7 +107,7 @@ export default {
       reason: "",
       route: "",
       // >>
-      columns: ['medikament', 'gtin', 'morgen', 'mittag','abend','nacht', 'einheit', 'von', 'bis','anleitung', 'grund'],
+      columns: ['medikament', 'gtin', 'morgen', 'mittag','abend','nacht', 'einheit', 'startdatum', 'enddatum','anleitung', 'grund'],
       tableData: [],
       options: {
         filterable: false,
@@ -127,7 +151,8 @@ export default {
         localStorage.setItem("token",res.access_token);
         localStorage.setItem("id",res.patient);
         this.authorized = true;
-        this.$forceUpdate();
+        this.getPract();
+        this.getPatList();
       }).catch(err => {
         console.log(err)
       })
@@ -209,6 +234,7 @@ export default {
         },
       }).done(medicationList => {
         this.medicationList = medicationList;
+        this.medicationLoaded = true;
         console.log("medicationList: " + this.medicationList)
         this.showMedication();
       }).catch(err => {
@@ -218,6 +244,7 @@ export default {
 
     selectPat(pat) {
       this.tableData = [];
+      this.medicationLoaded = false;
       this.patSelected = true;
       this.pat = pat.resource;
 
@@ -285,30 +312,35 @@ export default {
           let noon = "-";
           let evening = "-";
           let night = "-";
+          let unit = '';
+          let startdate = '';
+          let enddate = '';
 
-          for (let j = 0; j < this.medicationList.entry[i].resource.dosage.length; j++) {
-            for (let k = 0; k < this.medicationList.entry[i].resource.dosage[j].timing.repeat.when.length; k++) {
-              if(this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCM") {
-                morning = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCD") {
-                noon = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCV") {
-                evening = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "HS") {
-                night = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-              } 
+          if(this.medicationList.entry[i].resource.dosage) {
+            for (let j = 0; j < this.medicationList.entry[i].resource.dosage.length; j++) {
+              for (let k = 0; k < this.medicationList.entry[i].resource.dosage[j].timing.repeat.when.length; k++) {
+                if(this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCM") {
+                  morning = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+                } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCD") {
+                  noon = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+                } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCV") {
+                  evening = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+                } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "HS") {
+                  night = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+                } 
+              }
             }
+            unit = this.medicationList.entry[i].resource.dosage[0].doseQuantity.unit;
+            startdate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.start;
+            enddate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.end;
           }
 
-          let unit = this.medicationList.entry[i].resource.dosage[0].doseQuantity.unit;
-          let startdate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.start;
-          let enddate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.end;
           let note = '';
           if(this.medicationList.entry[i].resource.note) {
             note = this.medicationList.entry[i].resource.note[0].text;
           }
           let reason = this.medicationList.entry[i].resource.reasonCode[0].text;
-          let route = this.medicationList.entry[i].resource.dosage[0].route.coding[0].display;
+          let route = ""; //this.medicationList.entry[i].resource.dosage[0].route.coding[0].display;
 
           let temp = new this.medi(medication,gtin,morning,noon,evening,night,unit,startdate,enddate,note,route,reason);
           this.tableData.push(temp);
@@ -324,8 +356,8 @@ export default {
       this.abend = evening;
       this.nacht = night;
       this.einheit = unit;
-      this.von = startdate;
-      this.bis = enddate;
+      this.startdatum = startdate;
+      this.enddatum = enddate;
       this.einnahmeart = route;
       this.anleitung = note;
       this.grund = reason;

@@ -1,6 +1,48 @@
 * {
     box-sizing: border-box;
   }
+
+  .column.is-3 {
+    width: 15%;
+  }
+
+  .content table td {
+    padding: .2em .5em;
+  }
+
+  .content table th {
+    padding: .4em .4em;
+  }
+
+  .content {
+    padding-top: 10px;
+  }
+
+  .imgLogo {
+    width: 250px;
+    height: 66px;
+    float: left;
+  }
+
+  .logo {
+    width: 50%;
+  }
+
+  .logout {
+    width: 50%;
+  }
+
+  .logout div{
+    float: right;
+  }
+
+  .hero-body {
+    display: flex;
+  }
+
+  .twothird {
+    width: 85%;
+  }
   
   body {
     margin: 20px 10px;
@@ -12,64 +54,4 @@
   
   h3 {
     padding:6px 0px 0px 0px;
-  }
-  /* Style the header */
-  header {
-    margin: 0px;
-    background-color: #009FCD;
-    text-align: center;
-    font-size: 35px;
-    color: white;
-    height: 60px;
-  }
-  
-  /* Create two columns/boxes that floats next to each other */
-  nav.main {
-    float: left;
-    width: 20%;
-    background: #C5E6F5;
-    padding: 20px;
-  }
-  
-  /* Style the list inside the menu */
-  nav ul {
-    list-style-type: none;
-    padding: 0;
-  }
-  
-  article {
-    float: left;
-    padding: 20px;
-    width: 80%;
-    background-color: #f9f9f9;
-    min-height: 500px;
-    height: auto;
-     /* only for demonstration, should be removed */
-  }
-
-  section {
-    display: flex;
-  }
-  
-  /* Clear floats after the columns */
-  section:after {
-    content: "";
-    display: table;
-    clear: both;
-  }
-  
-  /* Style the footer */
-  footer {
-    background-color: #bbb;
-    padding: 10px;
-    text-align: center;
-    color: white;
-  }
-  
-  /* Responsive layout - makes the two columns/boxes stack on top of each other instead of next to each other, on small screens */
-  @media (max-width: 600px) {
-    nav, article {
-      width: 100%;
-      height: auto;
-    }
   }
