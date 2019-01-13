@@ -310,24 +310,29 @@ export default {
           let noon = "-";
           let evening = "-";
           let night = "-";
+          let unit = '';
+          let startdate = '';
+          let enddate = '';
 
-          for (let j = 0; j < this.medicationList.entry[i].resource.dosage.length; j++) {
-            for (let k = 0; k < this.medicationList.entry[i].resource.dosage[j].timing.repeat.when.length; k++) {
-              if(this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCM") {
-                morning = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCD") {
-                noon = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCV") {
-                evening = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-              } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "HS") {
-                night = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
-              } 
+          if(this.medicationList.entry[i].resource.dosage) {
+            for (let j = 0; j < this.medicationList.entry[i].resource.dosage.length; j++) {
+              for (let k = 0; k < this.medicationList.entry[i].resource.dosage[j].timing.repeat.when.length; k++) {
+                if(this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCM") {
+                  morning = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+                } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCD") {
+                  noon = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+                } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCV") {
+                  evening = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+                } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "HS") {
+                  night = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
+                } 
+              }
             }
+            unit = this.medicationList.entry[i].resource.dosage[0].doseQuantity.unit;
+            startdate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.start;
+            enddate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.end;
           }
 
-          let unit = this.medicationList.entry[i].resource.dosage[0].doseQuantity.unit;
-          let startdate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.start;
-          let enddate = this.medicationList.entry[i].resource.dosage[0].timing.repeat.boundsPeriod.end;
           let note = '';
           if(this.medicationList.entry[i].resource.note) {
             note = this.medicationList.entry[i].resource.note[0].text;
