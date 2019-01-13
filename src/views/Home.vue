@@ -9,7 +9,7 @@
                     </p>
                     <ul class="menu-list" v-if="patListLoaded">
                       <li v-for="patient in patList.entry" :key="patient.resource.id" v-on:click="selectPat(patient)"> 
-                        <a href="#"> {{patient.resource.name[0].given[0] +" "+patient.resource.name[0].family}}</a>
+                        <a href="#" :class="{'is-active': patient.resource.id == selected}" @click="selected = patient.resource.id"> {{patient.resource.name[0].given[0] +" "+patient.resource.name[0].family}}</a>
                       </li>
                     </ul> <!--
                     <ul>
@@ -107,7 +107,7 @@ export default {
       reason: "",
       route: "",
       // >>
-      columns: ['medikament', 'gtin', 'morgen', 'mittag','abend','nacht', 'einheit', 'von', 'bis','anleitung', 'grund'],
+      columns: ['medikament', 'gtin', 'morgen', 'mittag','abend','nacht', 'einheit', 'startdatum', 'enddatum','anleitung', 'grund'],
       tableData: [],
       options: {
         filterable: false,
@@ -151,6 +151,8 @@ export default {
         localStorage.setItem("token",res.access_token);
         localStorage.setItem("id",res.patient);
         this.authorized = true;
+        this.getPract();
+        this.getPatList();
       }).catch(err => {
         console.log(err)
       })
@@ -354,8 +356,8 @@ export default {
       this.abend = evening;
       this.nacht = night;
       this.einheit = unit;
-      this.von = startdate;
-      this.bis = enddate;
+      this.startdatum = startdate;
+      this.enddatum = enddate;
       this.einnahmeart = route;
       this.anleitung = note;
       this.grund = reason;
