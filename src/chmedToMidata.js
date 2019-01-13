@@ -73,15 +73,31 @@ chmedToMidata.saveMedication = (chmed16a, miToken, patId) => {
 
             medStat.subject.reference = patId;
             let gtin;
-            if(results[1].medicaments[i].product.articles[0].gtin) {
-                gtin=results[1].medicaments[i].product.articles[0].gtin
-            } else {
-                gtin=results[1].medicaments[i].product.articles[1].gtin
+            let oid = "urn:oid:2.51.1.1";
+            try {
+                if(results[1].medicaments[i].product.articles[0].gtin) {
+                    gtin=results[1].medicaments[i].product.articles[0].gtin;
+                } else if (results[1].medicaments[i].product.articles[1].gtin){
+                    gtin=results[1].medicaments[i].product.articles[1].gtin;
+                } else if (results[1].medicaments[i].product.articles[0].pharmacode) {
+                   gtin=results[1].medicaments[i].product.articles[0].pharmacode;
+                   oid="urn:oid:2.16.756.5.30.2.6.3";
+                }
+            } catch (error) {
+                console.log("called")
+                if (results[1].medicaments[i].product.articles[0].pharmacode) {
+                    gtin=results[1].medicaments[i].product.articles[0].pharmacode;
+                    oid="urn:oid:2.16.756.5.30.2.6.3";
+
+                } else {
+                    gtin="";
+                }
             }
+            
             medStat.medicationCodeableConcept = {
                 "coding": [
                   {
-                    "system": "urn:oid:2.51.1.1",
+                    "system": oid,
                     "code": gtin,
                     "display": results[1].medicaments[i].product.description
                   }
@@ -89,20 +105,24 @@ chmedToMidata.saveMedication = (chmed16a, miToken, patId) => {
               }
             medStatements[i] = medStat;
         }
-        console.log(medStatements[0].dosage)
+
+        console.log(medStatements[0].medicationCodeableConcept)
+
 
         medStatements = chmedToMidata.checkForRedundancy(medStatements, existingMedStatements);
 
-        // medStatements.forEach(e => {
-        //     fetch(chmedToMidata.midataUrl+"/MedicationStatement", {
-        //         method:"POST",
-        //         headers : {
-        //             "Authorization": "Bearer " + miToken,
-        //             "Content-Type":"application/json"
-        //         },
-        //         body:JSON.stringify(e)
-        //     }).then(res => res.text()).then(res => console.log(res)).catch(err => console.log(err));
-        // })
+
+
+        medStatements.forEach(e => {
+            fetch(chmedToMidata.midataUrl+"/MedicationStatement", {
+                method:"POST",
+                headers : {
+                    "Authorization": "Bearer " + miToken,
+                    "Content-Type":"application/json"
+                },
+                body:JSON.stringify(e)
+            }).then(res => res.text()).then(res => console.log(res)).catch(err => console.log(err));
+         })
         
     })
 }
@@ -172,11 +192,11 @@ let testStrUpdated= "CHMED16A1H4sIAAAAAAAAC41TTY+bMBD9K5GvDVmbQPi4ZUWzizabRQntpc
 let testStrCosoptBactrim="CHMED16A1H4sIAAAAAAAAC41STW+CQBD9K2auFbOLIsLNhmiJX0RpL42HVbaWoIuBaZrG8M966x/rLAsakx6asMnOm8fMezN7gUhgKhWCf4HJUpwk+DATxRG6MG/DQqiM4seAWMC9wchifYs5BE2lSmQBPie2OlA2kYQuZKLLBfMSF1IRSlhUyBP4rAvrPfivFwiJMqi65uIQTOiQO9sWstsLNznHda+5oYGusVttdVNR1pXjr7Osf3sRR+rtjaj7s0qxqWnSdpvmrnfN82pbVbX8dE/WFZqCugVw5njMdokbJqbEgEzlhhHgpMjJHtiMexbjFreJGGCcG/OhWsuydh8Q3+6xLmsO77GtVm8EwAGR6HF2WJd6btPi51vJorNBURA+Pp9DVSLNG5bp/h07pxQ7s1yhyPCYqlJ2hPrUG1FEXueCeKsofhrP4zEBm4+d0bDcRWKfabvN/IDzgdN3/2GONk+f3nxjzmCexfWU720ai05z7mxuUL+nq81QvckM0/wmO1r9LZhKRJNUHhMtrV56o5fWXb/O2wJi5vk28/nogXGfMah+AUHF78DrAgAA"
 let testStrCosoptBactrimLastYear="CHMED16A1H4sIAAAAAAAAC42Sz26CQBDGX8XMtWJ2UUS42RAt8R9R2kvjYZWtJehiYJqmMbxZb32xzrKgbdJDDxD2m4/Z77ezF4gEplIh+BeYLMVJgg8zURyhC/N2WQiV0fo+IBdwbzCyWN9iDklTqRJZgM/JrQ5UTSSpC5nodsG8xIVUpJIWFfIEPuvCeg/+8wVCsgyqrvlwSCZ1yJ1tK9ntBzc1x3WvtaGRrmu32upNRVl3jj/Osv7tSRxpb29Euz+qFJuepmy3Ze561zqvtlVVx0/3hK7QNNRbAGeOx2yXvGFiWgwIKjeOACdFTnhgM+5ZjFvcJmOAcW7gQ7WWZU0fkN/usS5rHt5jW53eBIADItnj7LAu9blNi69PJYvOBkVB+vh8DlWJdN6wTPev2Dml2JnlCkWGx1SVsiPUu56IIvM6F+RbRfHDeB6PSdi87UyG5S4S+0zjNucHnA+cvvsPONdiNHw9+QbOaMSstd+YBtHRiBr1J+YG9X26YobqRWaY5rfY0ervwNQimqTymOho9dCbvDTu+nbeBhAzz3e4z9w7Rm8G1Tes801M6wIAAA=="
 let testStrCosoptBactrimAspirin=""
-let testStrSusanne="CHMED16A1H4sIAAAAAAAAA72UzW6CQBDH32WvhWYHRD6OhtiYqCVoe2k4UNgIERfDLofG8Ga99cU6y4rGHhpNUwMhw8x/Zn4zye6BRKksGZckOJDpMt0xEpBVK1LOGTHI/OhZMCFYU5XomoSoJeDbvknBpDa6nhjPWUMCCxP4BqO5yl2wXBUN50IuGEcv+uKMBG8HMsPIqDO04QyGNRgwGPZgjDEVM5Ph3+0S1SAVfbn1xx4hwSCvaYV9XB87vfBSHkvqsDWEYeyd4tAlXdejlhlOyqU48REAz3P8EWpnuS4xMkhUa0Uop029Q5VFwTPp2ARAYSjXtR50xmOGSoo+1INB1ZMoat2YrOQWZevtJhZqN5OqlUWdFXnTZioQ1yl6o2c0V+27rrR8j1IMntdzE6KDlGfEC+xLWPro/BeuBQ5Q/0pc+48bTdusEHtWZgWr8ubrU7DbQPVqfgd1TWqZ4P3c6xH+7sjX7NZVx9amF8jnMe6BjMWiaYlyBdef4/x0gvvLBYn6ywWsNUBA8XUf1JeS7hunouM7sAQAAA=="
-let miToken = "m2tIUGLJdfAvWBlMhXIRwUids-JR-PWwmGuNtVuGZ4k9_X6mxnzjXWmLYCWE5t26rOwhh9jYF0CJzHyi1gFtXQoRIRzRcou9Sm-_kMfxNlv6mEI7YysUUyDSu4I8LB8Thu963pHJa_xw1TyKsakfLd0YFWBbgkdgC1D_lHa3UT4fd2JoOfSYp1ljJrmj_i7p";
-let patId = "Patient/5c3a50cbbcbc873680735900";
+let testStrRalph="CHMED16A1H4sIAAAAAAAAC72Uy07CQBSG32W2Mjpn2tLLToMYEtQGUBeGRaEjNpSpgXGhpG/mzhfzn5YSNTFgvCyanjmXf745PdM1ixOTKW1YtGbdi2ShWMQGSf5wz1qsv1nfZOlCLeE46SCPURgSFx4XLlxnSqeIRYR0PUM0VfCeq9QKdvorc640vPANpiy6XbMeIm7Zqg2vMWRjUGO0UYGCcbP2y7HVTVaVyujpQVWbXic55AOJDa50ZjZKdVg2YQrcbZzKcVlWhNkUx9OmFrRbMHKES8Jq9dJawm2xuKgzOqa7LBbIkoICLnwurWjHjIqtL+CyKtYDhRqBKCrpULQEns17bM9Ro7ChmSN9NJ8NVrZJPX2n5iYrtO1WkcATX8IcPk5qtYtJnEzn73rESHpe23F2A/uc8M2cD8DwSU7hl8BiJ/CwSCdLpbX6BrEIQxkGf0O8u8XD6T1G+Vnpo1Ntnl9fdPqIqd0b3nFJOnvAYxY8sH6eD8xM8IN2H+e5Ws4y9fu8/vY+v2+25fX/gxcKcTdTeWrJqmu+wcUFr345wAm5IE7OiGTktSPPOxAUCcHKN0jkfmHCBAAA"
+let miToken = "UCH9NV8_C0-bHPJ75A9cXIMBVOqicuhF0F9K2d8Fc_MQy52viQ3-fLrrISluRan_WpVrf2N1j8xotqSNa-b6aZllH6oSUBe6eahx8CvBMJsJil_pOoGHTr8qLaev8_1nhNbi5oMlOnuSg885UDFNAqUJkiOWIh13oy_S0V8JJnqDtTCjEqkhDSOzj2T70Fwx";
+let patId = "Patient/5c3b164ecf56934875122a65";
 
 
-chmedToMidata.saveMedication(testStrSusanne, miToken, patId);
+//chmedToMidata.saveMedication(testStrRalph, miToken, patId);
 
-// chmedToMidata.saveObservations(testStrSusanne, miToken,patId);
+ //chmedToMidata.saveObservations(testStrRalph, miToken,patId);
