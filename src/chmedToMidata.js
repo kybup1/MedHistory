@@ -1,4 +1,4 @@
- //chmedToMidata.saveObservations(testStrRalph, miToken,patId);
+//chmedToMidata.saveObservations(testStrRalph, miToken,patId);
 
 //Imports of requried node modules
 const fetch = require("node-fetch");
@@ -185,11 +185,13 @@ chmedToMidata.saveObservations = (chmed16a, miToken, patId) => {
 module.exports = chmedToMidata
 
 
-//Parameters for usnig the interface in test mode
-
-let chmedStr="CHMED16A1H4sIAAAAAAAAC72Uy07CQBSG32W2Mjpn2tLLToMYEtQGUBeGRaEjNpSpgXGhpG/mzhfzn5YSNTFgvCyanjmXf745PdM1ixOTKW1YtGbdi2ShWMQGSf5wz1qsv1nfZOlCLeE46SCPURgSFx4XLlxnSqeIRYR0PUM0VfCeq9QKdvorc640vPANpiy6XbMeIm7Zqg2vMWRjUGO0UYGCcbP2y7HVTVaVyujpQVWbXic55AOJDa50ZjZKdVg2YQrcbZzKcVlWhNkUx9OmFrRbMHKES8Jq9dJawm2xuKgzOqa7LBbIkoICLnwurWjHjIqtL+CyKtYDhRqBKCrpULQEns17bM9Ro7ChmSN9NJ8NVrZJPX2n5iYrtO1WkcATX8IcPk5qtYtJnEzn73rESHpe23F2A/uc8M2cD8DwSU7hl8BiJ/CwSCdLpbX6BrEIQxkGf0O8u8XD6T1G+Vnpo1Ntnl9fdPqIqd0b3nFJOnvAYxY8sH6eD8xM8IN2H+e5Ws4y9fu8/vY+v2+25fX/gxcKcTdTeWrJqmu+wcUFr345wAm5IE7OiGTktSPPOxAUCcHKN0jkfmHCBAAA"
-let miToken = "UCH9NV8_C0-bHPJ75A9cXIMBVOqicuhF0F9K2d8Fc_MQy52viQ3-fLrrISluRan_WpVrf2N1j8xotqSNa-b6aZllH6oSUBe6eahx8CvBMJsJil_pOoGHTr8qLaev8_1nhNbi5oMlOnuSg885UDFNAqUJkiOWIh13oy_S0V8JJnqDtTCjEqkhDSOzj2T70Fwx";
-let patId = "Patient/5c3b164ecf56934875122a65";
+//Parameters for using the interface in test mode
+// CHMED16A String for the converting
+let chmedStr= "CHMED16A1H4sIAAAAAAAAC62QS2+DMBCE/8teSysb8ig+VogqUpIioKeKA49VipKYCpxDi/jvHYfQNpeqh0pYjMez62/dU5SbmrUh1VO4zY9MipJTl2vN5ND64my467g91LAeAmRJ+p5/KyQ+WI+sK25JuSjQO5xWtnbDlW0arDuzYQ0XXlySeulphZPZ4IxiPgl3EnIS3iQWKEVlNu2XQzYM5yvqEoTadF99Sbrz+cKb4bZVlb6/AX/mUNSMicCEbXNEyhXyPID0EAxM2oyAKx0zkgIe8vJOOOJ7ZUPm0LOu7QMkZo94ut/FnZ0taaqiZTyatlM2OazoCTI5FWO7bRHl5f7HbCSF77v+/X9yXv6/cZavR24//oCJFlFY86GyQNjgrUdKaTmuyFIplbdUrrgRUglBwycvDgQOVgIAAA==";
+// MIDATA Token for the authentification
+let miToken = "tZLK4k4kqzn7lKtqzS7jZlwX-NZOWhTIbT6D8YRPe7YrjX49iylHeWManO5hnJCOMMDwbd5bkM7Z3eMoDG9ssyatodo4cXUbDC0L7GoHTTiGNzgALFbnXiQiG_0hzZgaIdtNxqAleY-K3FztSCbWUQNGFEjMD6s2cGRMR5axHk_7p2qe_Nn9fz4hnkjui3-A";
+// PatientID from MIDATA (is needed for the import)
+let patId = "Patient/5c3a50cbbcbc873680735900";
 
 
 chmedToMidata.saveMedication(chmedStr, miToken, patId);

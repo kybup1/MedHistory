@@ -13,6 +13,7 @@ export default {
   data () {
     return {
       oauth2: {
+        // Name of the app in MIDATA
         clientId: "MedHistory",
         secret: null,
         serviceUri: "https://test.midata.coop/fhir/",

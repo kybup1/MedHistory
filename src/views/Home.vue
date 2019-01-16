@@ -11,11 +11,7 @@
                       <li v-for="patient in patList.entry" :key="patient.resource.id" v-on:click="selectPat(patient)"> 
                         <a href="#" :class="{'is-active': patient.resource.id == selected}" @click="selected = patient.resource.id"> {{patient.resource.name[0].given[0] +" "+patient.resource.name[0].family}}</a>
                       </li>
-                    </ul> <!--
-                    <ul>
-                        <li><a class="is-active">Dashboard</a></li>
-                        <li><a>Customers</a></li>
-                    </ul> !-->
+                    </ul>
                 </aside>
             </div>
             <div class="column twothird">
@@ -71,18 +67,26 @@ import router from '../router.js'
 export default {
   data () {
     return {
+      // Highlighting of selected patient
       selected: undefined,
       oauth2: {},
+      // information about the logged in practitioner
       pract: {},
+      // Boolean if the practitioner is loaded or not
       practLoaded: false,
+      // Boolean if it is a token in the localStorage
       authorized: false,
+      // All patients that belong to the loggin in practitioner
       patList: {},
+      // Boolean if the patientlist is loaded or not
       patListLoaded: false,
+      // Selected patient information
       pat: {},
-      patSelected: false,
+      // Loaded observations from the selected patient
       observationList: {},
-      observationLoaded: false,
+      // All medicationStatements loaded in this variable
       medicationList: {},
+      // Boolean if the medication is already loaded (for the display)
       medicationLoaded: false,
       // Patient Data <<
       patName: "",
@@ -107,8 +111,11 @@ export default {
       reason: "",
       route: "",
       // >>
+      // Columns for the table
       columns: ['medikament', 'gtin', 'morgen', 'mittag','abend','nacht', 'einheit', 'startdatum', 'enddatum','anleitung', 'grund'],
+      // Array with all the medication
       tableData: [],
+      // Options for the table
       options: {
         filterable: false,
       },
@@ -116,6 +123,7 @@ export default {
       
     }
   },
+  // Checks if it is a token in the localStorage and starts the requests for practitioner and patientList
   created () {
     if(localStorage.getItem("token")){
       this.authorized = true;
@@ -129,6 +137,7 @@ export default {
   },
 
   methods : {
+    // Saving the token 
     saveToken() {
       var state = this.getUrlParameter("state");
       var code = this.getUrlParameter("code");
@@ -158,6 +167,8 @@ export default {
       })
     },
 
+    // Request for the logged in practitioner 
+    // Returns the information about the practitioner
     getPract() {
       const token = localStorage.getItem("token");
       const id = localStorage.getItem("id")
@@ -173,12 +184,13 @@ export default {
       }).done(pract => {
         this.pract = pract;
         this.practLoaded = true;
-        console.log("pract: " + pract)
       }).catch(err => {
         this.checkLogin(err);
       })
     },
 
+    // Loading of all patients
+    // return: Array with all patients
     getPatList() {
       const token = localStorage.getItem("token");
       
@@ -199,6 +211,8 @@ export default {
       })
     },
 
+    // Loading of all observations of a selected patient
+    // return: All observations in an array
     getObservations() {
       const token = localStorage.getItem("token");
       
@@ -213,13 +227,14 @@ export default {
         },
       }).done(observationList => {
         this.observationList = observationList;
-        console.log("observationList: " + this.observationList)
         this.showObservation();
       }).catch(err => {
         this.checkLogin(err);
       })
     },
 
+    // Loading of all medicationStatements of a selected patient
+    // Return: Array with all medication
     getMedication() {
       const token = localStorage.getItem("token");
       
@@ -235,26 +250,30 @@ export default {
       }).done(medicationList => {
         this.medicationList = medicationList;
         this.medicationLoaded = true;
-        console.log("medicationList: " + this.medicationList)
         this.showMedication();
       }).catch(err => {
         this.checkLogin(err);
       })
     },
 
+    // Is executed when you click on a patient. 
     selectPat(pat) {
+      // Resetting the table and the view
       this.tableData = [];
       this.medicationLoaded = false;
-      this.patSelected = true;
+      // Setting of the selected patient
       this.pat = pat.resource;
 
+      // Requets of all information
       this.getObservations();
       this.getMedication();
 
+      // Setting of the labels with the patient information
       this.patName = this.pat.name[0].given[0] + " " + this.pat.name[0].family;
       this.patAdress = this.pat.address[0].line[0] + ", " + this.pat.address[0].postalCode + " " + this.pat.address[0].city;
       this.patBirthdate = this.pat.birthDate;
       this.patGender = this.pat.gender;
+      // eMail and phone are in the same array
       for (let i = 0; i < this.pat.telecom.length; i++) {
         if(this.pat.telecom[i].system == 'phone') {
           this.patPhone = this.pat.telecom[i].value;
@@ -263,11 +282,13 @@ export default {
       
     },
 
+    // Logout and redirect to login page
     logout() {
       localStorage.clear();
       router.push("/");
     },
 
+    // Checks if the token is invalid or expired. If so, then redirect to login page
     checkLogin(err) {
       console.log("error: " + err)
       if(err.responseText == "Invalid token" || err.responseText=="Invalid or expired authToken."){
@@ -276,6 +297,7 @@ export default {
       }
     },
 
+    // Getting the right url parameter
     getUrlParameter(sParam) {
       var sPageURL = window.location.search.substring(1);
       var sURLVariables = sPageURL.split('&');
@@ -288,6 +310,7 @@ export default {
       }
     },
 
+    // Proceeding of the requested observatons
     showObservation() {
       if(this.observationList.entry) {
         for (let i = 0; i < this.observationList.entry.length; i++) {
@@ -302,8 +325,11 @@ export default {
       }
     },
 
+    // Proceeding of the requested medications
     showMedication() {
       if(this.medicationList.entry) {
+
+        // looping through all entries
         for (let i = 0; i < this.medicationList.entry.length; i++) {
           let medication = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].display;
           let gtin = this.medicationList.entry[i].resource.medicationCodeableConcept.coding[0].code;
@@ -316,9 +342,11 @@ export default {
           let startdate = '';
           let enddate = '';
 
+          // In some cases (false cases) there is no dosage object
           if(this.medicationList.entry[i].resource.dosage) {
             for (let j = 0; j < this.medicationList.entry[i].resource.dosage.length; j++) {
               for (let k = 0; k < this.medicationList.entry[i].resource.dosage[j].timing.repeat.when.length; k++) {
+                // PCM = morning, PCD = noon, PCV = evening, HS = night
                 if(this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCM") {
                   morning = this.medicationList.entry[i].resource.dosage[j].doseQuantity.value;
                 } else if (this.medicationList.entry[i].resource.dosage[j].timing.repeat.when[k] == "PCD") {
@@ -340,6 +368,7 @@ export default {
             note = this.medicationList.entry[i].resource.note[0].text;
           }
           let reason = this.medicationList.entry[i].resource.reasonCode[0].text;
+          // Additional information about how to intake the medication
           let route = ""; //this.medicationList.entry[i].resource.dosage[0].route.coding[0].display;
 
           let temp = new this.medi(medication,gtin,morning,noon,evening,night,unit,startdate,enddate,note,route,reason);
