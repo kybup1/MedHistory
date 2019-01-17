@@ -2,7 +2,7 @@
 
 //Imports of requried node modules
 const fetch = require("node-fetch");
-var Fhir = require('./libs/fhir').Fhir;
+var Fhir = require('fhir').Fhir;
 var fhir = new Fhir();
 
 //Initialisation of the converter object which is beeing exportet

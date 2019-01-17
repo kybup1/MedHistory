@@ -7,17 +7,17 @@ var testData = "CHMED16A1H4sIAAAAAAAAC61Sy26DMBD8l72WVLYhTfCtFUqClAcitJeKA49VipK
 
 // ### Converting CHMED16A String into the JSON-Object ###
 
-var b64Data  =   testData.substring(9);
+var b64Data = testData.substring(9);
 // Decode base64 (convert ascii to binary)
-var strData     = atob(b64Data);
+var strData = atob(b64Data);
 // Convert binary string to character-number array
-var charData    = strData.split('').map(function(x){return x.charCodeAt(0);});
+var charData = strData.split('').map(function(x){return x.charCodeAt(0);});
 // Turn number array into byte-array
-var binData     = new Uint8Array(charData);
+var binData = new Uint8Array(charData);
 // Pako magic makeing
-var data        = pako.inflate(binData);
+var data = pako.inflate(binData);
 // Convert gunzipped byteArray back to ascii string:
-let strData2  = String.fromCharCode.apply(null, new Uint16Array(data));
+let strData2 = String.fromCharCode.apply(null, new Uint16Array(data));
 var mediPlan = JSON.parse(strData2);
 
 // Setting a new date, which works for the implementation (creationDate between 0-12)
